@@ -1,0 +1,10 @@
+1,Astra
+2,Sinopharm
+3,Pfizer
+4,Sinovac
+5,Vello Cell
+6,Moderna
+7,Zeneca
+8,Nanocovax
+9,Vabiotech
+10,PoLyvac
