@@ -2,6 +2,17 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/D:/java/VaccineManagement/src/dto/Injection.java</file>
+            <file>file:/D:/java/VaccineManagement/src/gui/UiDisplay.java</file>
+            <file>file:/D:/java/VaccineManagement/src/Main.java</file>
+            <file>file:/D:/java/VaccineManagement/src/gui/Menu.java</file>
+            <file>file:/D:/java/VaccineManagement/src/dto/Vaccine.java</file>
+            <file>file:/D:/java/VaccineManagement/src/services/InjectionListManagement.java</file>
+            <file>file:/D:/java/VaccineManagement/src/dto/JabProfile.java</file>
+            <file>file:/D:/java/VaccineManagement/src/dto/Student.java</file>
+            <file>file:/D:/java/VaccineManagement/src/utils/InputUtils.java</file>
+            <file>file:/D:/java/VaccineManagement/src/utils/FileUtils.java</file>
+        </group>
     </open-files>
 </project-private>

@@ -21,6 +21,9 @@ import static utils.InputUtils.inputYesNo;
  * @author kiman
  */
 public class UiDisplay {
+    private final String INJECTION_FILE_NAME = "injections.txt";
+    private final String STUDENT_FILE_NAME = "students.txt";
+    private final String VACCINE_FILE_NAME = "vaccines.txt";
 
     private Scanner sc = new Scanner(System.in);
     private Menu mainMenu = new Menu();
@@ -80,10 +83,10 @@ public class UiDisplay {
 
     public void getInformationFromFiles() {
         try {
-            studentsList = FileUtils.readStudentsFromFileText("students.txt");
-            vaccinesList = FileUtils.readVaccinesFromFileText("vaccines.txt");
+            studentsList = FileUtils.readStudentsFromFileText(STUDENT_FILE_NAME);
+            vaccinesList = FileUtils.readVaccinesFromFileText(VACCINE_FILE_NAME);
 
-            injectionManagement = new InjectionListManagement(FileUtils.readInjectionsFromFileText("injections.txt"));
+            injectionManagement = new InjectionListManagement(FileUtils.readInjectionsFromFileText(INJECTION_FILE_NAME));
             System.out.println("Student list: ");
             studentsList.stream().forEach(System.out::println);
             System.out.println("Vaccine list: ");
@@ -221,7 +224,7 @@ public class UiDisplay {
             boolean check = InputUtils.inputYesNo("Are you sure you want to save these?(Y/n)");
             if(check == false) return;
             
-            FileUtils.writeInjectionsToFileText("injections.txt", injectionsCollection);
+            FileUtils.writeInjectionsToFileText(INJECTION_FILE_NAME, injectionsCollection);
             System.out.println("Saved succesfully!");
         } catch (Exception e) {
             System.out.println(e.getMessage());
