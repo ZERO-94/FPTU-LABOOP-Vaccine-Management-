@@ -38,9 +38,9 @@ public class Vaccine implements Serializable{
             return false;
         }
 
-        Vaccine comparedFood = (Vaccine) obj;
+        Vaccine comparedVaccine = (Vaccine) obj;
 
-        if (comparedFood.id != this.id) {
+        if (comparedVaccine.id != this.id) {
             return false;
         }
 

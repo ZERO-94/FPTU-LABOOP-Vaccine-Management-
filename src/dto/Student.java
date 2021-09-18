@@ -42,9 +42,9 @@ public class Student implements Serializable{
             return false;
         }
 
-        Student comparedFood = (Student) obj;
+        Student comparedStudent = (Student) obj;
 
-        if (comparedFood.id != this.id) {
+        if (comparedStudent.id != this.id) {
             return false;
         }
 

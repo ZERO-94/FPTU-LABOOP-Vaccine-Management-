@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class InjectionListManagement {
 
-    private List<Injection> injectionsCollection = new ArrayList<>();
+    private List<Injection> injectionsCollection;
 
     public InjectionListManagement() {
         this.injectionsCollection = new ArrayList<>();
@@ -23,7 +23,7 @@ public class InjectionListManagement {
         return newInjectionsCollection;
     }
 
-    public boolean isEmpty() {
+    public boolean isInjectionCollectionEmpty() {
         return injectionsCollection.isEmpty();
     }
 
@@ -36,19 +36,19 @@ public class InjectionListManagement {
     }
 
     public Injection searchInjectionById(int injectionId) {
-        Injection neededInjection = injectionsCollection.stream()
-                .filter(injection -> injection.getId() == injectionId)
-                .reduce(null, (acc, injection) -> acc = injection);
+        int indexOfNeededInjection = injectionsCollection.indexOf(new Injection(injectionId));
 
-        return neededInjection;
+        if(indexOfNeededInjection < 0) return null;
+        
+        return injectionsCollection.get(indexOfNeededInjection);
     }
     
     public Injection searchInjectionByStudentId(int studentId) {
-        Injection neededInjection = injectionsCollection.stream()
-                .filter(injection -> injection.getStudentId() == studentId)
-                .reduce(null, (acc, injection) -> acc = injection);
+        for(Injection injection : injectionsCollection)
+            if(injection.getStudentId() == studentId)
+                return injection;
 
-        return neededInjection;
+        return null;
     }
 
     public boolean removeInjection(Injection injection) {
@@ -56,8 +56,7 @@ public class InjectionListManagement {
     }
 
     public boolean removeInjection(int removedInjectionId) {
-        Injection removedInjection = searchInjectionById(removedInjectionId);
-        return injectionsCollection.remove(removedInjection);
+        return injectionsCollection.remove(new Injection(removedInjectionId));
     }
 
     @Override
@@ -66,12 +65,5 @@ public class InjectionListManagement {
                 .map(injection -> injection.toString())
                 .reduce("", (acc, injectionString) -> acc + injectionString + "\n");
         return output;
-    }
-    
-    public int getMaxInjectionId() {
-        int max = 0;
-        for(Injection injection : injectionsCollection) 
-            if(injection.getId() > max) max = injection.getId();
-        return max;
     }
 }
