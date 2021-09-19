@@ -17,10 +17,6 @@ public class Injection implements Serializable {
 
     public Injection(int id) { //for seaching
         this.id = id;
-        this.studentId = 0;
-        this.vaccineId = 0;
-        this.firstJab = null;
-        this.secondJab = null;
     }
 
     public Injection(int id, int studentId, int vaccineId, JabProfile firstJab, JabProfile secondJab) {
@@ -63,7 +59,7 @@ public class Injection implements Serializable {
         if (firstJab == null) {
             throw new IllegalArgumentException("invalid first jab");
         }
-        if (firstJab.getDate() == null || firstJab.getDate() == null) {
+        if (firstJab.getDate() == null || firstJab.getPlace() == null) {
             throw new IllegalArgumentException("invalid first jab");
         }
         this.firstJab = firstJab;
@@ -77,20 +73,19 @@ public class Injection implements Serializable {
         if (this.firstJab == null) {
             throw new IllegalArgumentException("The first jab must be set first!");
         }
-        if (secondJab == null || (secondJab.getDate() == null ^ secondJab.getPlace() == null)) {
+        if (secondJab == null) {
             throw new IllegalArgumentException("Invalid second jab");
         }
 
         if (secondJab.getDate() == null && secondJab.getPlace() == null) {
-
             this.secondJab = secondJab;
             return;
         }
-        
-        LocalDate beforeSecondDate4Weeks = secondJab.getDate().minusWeeks(4);
-        LocalDate beforeSecondDate12Weeks = secondJab.getDate().minusWeeks(12);
-        
-        if (beforeSecondDate4Weeks.isBefore(firstJab.getDate()) || beforeSecondDate12Weeks.isAfter(firstJab.getDate())) {
+
+        LocalDate firstJabDate = this.firstJab.getDate();
+        LocalDate secondJabDate = secondJab.getDate();
+
+        if (firstJabDate.isBefore(secondJabDate.minusWeeks(12)) || firstJabDate.isAfter(secondJabDate.minusWeeks(4))) {
             throw new IllegalArgumentException("The date of second jab must be between 4-12 weeks");
         }
         this.secondJab = secondJab;

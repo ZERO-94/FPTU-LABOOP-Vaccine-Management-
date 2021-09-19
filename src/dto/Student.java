@@ -11,10 +11,11 @@ import java.io.Serializable;
  *
  * @author kiman
  */
-public class Student implements Serializable{
+public class Student implements Serializable {
+
     private int id;
     private String name;
-    
+
     public Student(int id) {
         this.id = id;
     }
@@ -23,7 +24,7 @@ public class Student implements Serializable{
         this.id = id;
         this.name = name;
     }
-    
+
     public int getId() {
         return id;
     }
@@ -35,7 +36,14 @@ public class Student implements Serializable{
     public void setName(String name) {
         this.name = name;
     }
-    
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 83 * hash + this.id;
+        return hash;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null || !(obj instanceof Student)) {
@@ -50,7 +58,7 @@ public class Student implements Serializable{
 
         return true;
     }
-    
+
     public String toString() {
         return this.id + ", " + this.name;
     }

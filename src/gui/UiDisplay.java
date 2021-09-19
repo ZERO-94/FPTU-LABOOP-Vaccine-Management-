@@ -5,15 +5,15 @@ import dto.JabProfile;
 import dto.Student;
 import dto.Vaccine;
 import utils.FileUtils;
-import java.io.IOException;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import utils.InputUtils;
 import java.util.InputMismatchException;
 import services.InjectionListManagement;
+import services.StudentListManagement;
+import services.VaccineListManagement;
 import static utils.InputUtils.inputYesNo;
 
 /**
@@ -21,15 +21,22 @@ import static utils.InputUtils.inputYesNo;
  * @author kiman
  */
 public class UiDisplay {
+
     private final String INJECTION_FILE_NAME = "injections.txt";
     private final String STUDENT_FILE_NAME = "students.txt";
     private final String VACCINE_FILE_NAME = "vaccines.txt";
+    private final int MAX_VACCINE_ID = 1000;
+    private final int MAX_STUDENT_ID = 1000;
+    private final int MAX_INJECTION_ID = 1000;
+    private final int MIN_VACCINE_ID = 1;
+    private final int MIN_STUDENT_ID = 1;
+    private final int MIN_INJECTION_ID = 1;
 
     private Scanner sc = new Scanner(System.in);
     private Menu mainMenu = new Menu();
     private InjectionListManagement injectionManagement = new InjectionListManagement();
-    private List<Student> studentsList = new ArrayList<>();
-    private List<Vaccine> vaccinesList = new ArrayList<>();
+    private VaccineListManagement vaccineManagement = new VaccineListManagement(new ArrayList<>());
+    private StudentListManagement studentManagement = new StudentListManagement(new ArrayList<>());
 
     public UiDisplay() {
         mainMenu.addOption("Get all data in files");
@@ -83,14 +90,19 @@ public class UiDisplay {
 
     public void getInformationFromFiles() {
         try {
-            studentsList = FileUtils.readStudentsFromFileText(STUDENT_FILE_NAME);
-            vaccinesList = FileUtils.readVaccinesFromFileText(VACCINE_FILE_NAME);
+            List<Student> studentsList = FileUtils.readStudentsFromFileText(STUDENT_FILE_NAME);
+            List<Vaccine> vaccinesList = FileUtils.readVaccinesFromFileText(VACCINE_FILE_NAME);
+            List<Injection> injectionsList = FileUtils.readInjectionsFromFileText(INJECTION_FILE_NAME);
 
-            injectionManagement = new InjectionListManagement(FileUtils.readInjectionsFromFileText(INJECTION_FILE_NAME));
+            studentManagement = new StudentListManagement(studentsList);
+            vaccineManagement = new VaccineListManagement(vaccinesList);
+            injectionManagement = new InjectionListManagement(injectionsList);
+
             System.out.println("Student list: ");
             studentsList.stream().forEach(System.out::println);
             System.out.println("Vaccine list: ");
             vaccinesList.stream().forEach(System.out::println);
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -113,14 +125,10 @@ public class UiDisplay {
         boolean stillContinue = false;
         do {
             try {
-                Injection newInjection = null;
-                newInjection = createNewInjection();
-                System.out.println(newInjection);
+                Injection newInjection = createNewInjection();
                 String result = injectionManagement.addInjection(newInjection) ? "Added successful!" : "Failed to add!";
                 System.out.println(result);
-            } catch (InputMismatchException e) {
-                System.out.println("invalid input type");
-            } catch (Exception e) {
+            } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
             } finally {
                 stillContinue = InputUtils.inputYesNo("Continue to add new injection?(Y/n)");
@@ -148,14 +156,12 @@ public class UiDisplay {
             System.out.println("The injection you want to update is: ");
             System.out.println(neededInjection);
 
-            LocalDate firstJabDate = neededInjection.getFirstJab().getDate();
-            JabProfile secondJab = InputUtils.inputSecondJab(false, firstJabDate);
+            JabProfile firstJab = neededInjection.getFirstJab();
+            JabProfile secondJab = createSecondJabProfile("Enter second jab information: ", firstJab, false);
 
             neededInjection.setSecondJab(secondJab);
             System.out.println("Student has completed 2 injection!");
-        } catch (InputMismatchException e) {
-            System.out.println("invalid input type");
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -164,15 +170,9 @@ public class UiDisplay {
         sc = new Scanner(System.in);
         boolean stillContinue = false;
 
-        //prepare studentIdList to check existed Id later
-        ArrayList<Integer> studentIdList = new ArrayList<>();
-        for (Student student : studentsList) {
-            studentIdList.add(new Integer(student.getId()));
-        }
-
         do {
             try {
-                int studentId = InputUtils.inputId("Enter injection's student's id: ", 1, 1000, false, studentIdList, false);
+                int studentId = InputUtils.inputIdContainInList("Enter injection's student's id: ", 1, 1000, false, studentManagement.getStudentIdList());
 
                 Injection neededInjection = injectionManagement.searchInjectionByStudentId(studentId);
                 if (neededInjection != null) {
@@ -199,6 +199,7 @@ public class UiDisplay {
                 return;
             }
 
+            //Check information again before saving
             System.out.println("The injection you want to remove is: ");
             System.out.println(neededInjection);
 
@@ -209,64 +210,92 @@ public class UiDisplay {
 
             String result = injectionManagement.removeInjection(neededInjection) ? "Removed successful!" : "Failed to removed!";
             System.out.println(result);
-        } catch (Exception e) {
-            System.out.println(e);
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
         }
     }
 
     public void storeInFile() {
+        List<Injection> injectionsCollection = injectionManagement.getInjectionsCollection();
+
+        //Check information again before saving
+        System.out.println("This is the information you are gonna save");
+        injectionsCollection.stream().forEach(System.out::println);
+        boolean check = InputUtils.inputYesNo("Are you sure you want to save these?(Y/n)");
+        if (check == false) {
+            return;
+        }
         try {
-            List<Injection> injectionsCollection = injectionManagement.getInjectionsCollection();
-            
-            //Check information again before saving
-            System.out.println("This is the information you are gonna save");
-            injectionsCollection.stream().forEach(System.out::println);
-            boolean check = InputUtils.inputYesNo("Are you sure you want to save these?(Y/n)");
-            if(check == false) return;
-            
             FileUtils.writeInjectionsToFileText(INJECTION_FILE_NAME, injectionsCollection);
             System.out.println("Saved succesfully!");
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
-    
-    
 
-    public Injection createNewInjection() throws IllegalArgumentException, InputMismatchException {
-        //Prepare studentId list and vaccineId list to check existed 
-        ArrayList<Integer> studentIdList = new ArrayList<>();
-        for (Student student : studentsList) {
-            studentIdList.add(new Integer(student.getId()));
-        }
-        ArrayList<Integer> vaccineIdList = new ArrayList<>();
-        for (Vaccine vaccine : vaccinesList) {
-            vaccineIdList.add(new Integer(vaccine.getId()));
-        }
-        
+    public Injection createNewInjection() throws IllegalArgumentException {
+
         System.out.println("Enter new injection information: ");
 
-        int id = InputUtils.inputInt("Enter new injection's id: ", 1, 1000, true);
+        int id = InputUtils.inputInt("Enter new injection's id: ", MIN_INJECTION_ID, MAX_INJECTION_ID, true);
         if (injectionManagement.searchInjectionById(id) != null) {
             throw new IllegalArgumentException("This injection id already existed");
         }
 
-        int studentId = InputUtils.inputStudentIdOfInjection(1, 1000, studentIdList, this.injectionManagement, true);
-        
-        int vaccineId = InputUtils.inputId("Enter this injection's vaccine's id: ", 1, 1000, true, vaccineIdList, false);
+        int studentId = getStudentIdOfInjectionFromUser(true);
+
+        int vaccineId = InputUtils.inputIdContainInList("Enter this injection's vaccine's id: ", MIN_VACCINE_ID, MAX_VACCINE_ID, true, vaccineManagement.getVaccineIdList());
 
         Injection newInjection = new Injection(id, studentId, vaccineId, null, null);
 
-        System.out.println("Enter information for first jab: ");
+        JabProfile firstJab = createFirstJabProfile("Enter information for first jab: ");
+        newInjection.setFirstJab(firstJab);
+
+        JabProfile secondJab = createSecondJabProfile("Enter information for first jab: ", firstJab, true);
+        newInjection.setSecondJab(secondJab);
+
+        return newInjection;
+    }
+
+    private int getStudentIdOfInjectionFromUser(boolean loop) throws IllegalArgumentException {
+        int studentId;
+        do {
+            studentId = InputUtils.inputIdContainInList("Enter this injection's student's id: ", MIN_STUDENT_ID, MAX_STUDENT_ID, loop, studentManagement.getStudentIdList());
+
+            if (injectionManagement.searchInjectionByStudentId(studentId) == null) {
+                return studentId;
+            }
+            String exceptionMessage = "This student id already has its own injection";
+            InputUtils.handleInvalidInput(loop, exceptionMessage);
+        } while (true);
+    }
+
+    private JabProfile createFirstJabProfile(String message) throws IllegalArgumentException {
+        System.out.println(message);
         LocalDate firstJabDate = InputUtils.inputDate("Enter new first jab's date: ", false, true);
         String firstJabPlace = InputUtils.inputString("Enter new first jab's place: ", 1, 20, true);
 
         JabProfile firstJab = new JabProfile(firstJabDate, firstJabPlace);
-        newInjection.setFirstJab(firstJab);
+        return firstJab;
+    }
 
-        JabProfile secondJab = InputUtils.inputSecondJab(true, firstJabDate);
-        newInjection.setSecondJab(secondJab);
+    private JabProfile createSecondJabProfile(String message, JabProfile firstJab, boolean isAddInjection) throws IllegalArgumentException {
+        System.out.println(message);
+        LocalDate secondJabDate = InputUtils.inputDateWithWeekLimit("Enter new second jab's date: ",
+                                                                    firstJab.getDate(),
+                                                                    4,
+                                                                    12,
+                                                                    isAddInjection, //can omit second jab while adding new injection
+                                                                    true); 
 
-        return newInjection;
+        int minOfSecondJabPlaceLength = isAddInjection ? 0 : 1; //for add injection, the place can be omiited
+        String secondJabPlace = InputUtils.inputString("Enter new second jab's place: ", minOfSecondJabPlaceLength, 20, true);
+        if (isAddInjection) {
+            if (secondJabDate == null ^ secondJabPlace.length() == 0) {
+                System.out.println("Both information must be filled (Second jab's information will be null, you can update later)");
+                return new JabProfile();
+            }
+        }
+        return new JabProfile(secondJabDate, secondJabPlace);
     }
 }

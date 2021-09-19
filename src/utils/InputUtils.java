@@ -3,8 +3,8 @@ package utils;
 import dto.JabProfile;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Scanner;
 import services.InjectionListManagement;
 
@@ -14,7 +14,7 @@ import services.InjectionListManagement;
  */
 public class InputUtils {
 
-    private static void continueInputField(Exception e) throws IllegalArgumentException{
+    private static void continueInputField(Exception e) throws IllegalArgumentException {
         System.out.println(e.getMessage());
         boolean check = inputYesNo("Continue to enter this field ?(Y/n)");
         if (check == false) {
@@ -22,94 +22,96 @@ public class InputUtils {
         }
     }
 
-    public static int inputId(String message, int min, int max, boolean loop, ArrayList<Integer> idList, boolean notContain) throws IllegalArgumentException, InputMismatchException {
+    public static int inputIdNotContainInList(String message, int min, int max, boolean loop, List<Integer> idList) throws IllegalArgumentException {
+        String exceptionMessage;
         do {
-            try {
-                int input = inputInt(message, min, max, false);
+            int input = inputInt(message, min, max, loop);
 
-                if (notContain == true && idList.contains(new Integer(input))) {
-                    throw new IllegalArgumentException("This id already existed!");
-                }
-                if (notContain == false && !idList.contains(new Integer(input))) {
-                    throw new IllegalArgumentException("This id doesn't exist");
-                }
-                return input;
-            } catch (Exception e) {
-                if (loop == false) { //if user doesn't want to loop -> throw exception for the outter function
-                    throw e;
-                }
-                continueInputField(e);
+            if (idList.contains(new Integer(input))) {
+                exceptionMessage = "This id already existed!";
+                handleInvalidInput(loop, exceptionMessage);
+                continue;
             }
+
+            return input;
+        } while (true);
+    }
+    
+    public static int inputIdContainInList(String message, int min, int max, boolean loop, List<Integer> idList) throws IllegalArgumentException {
+        String exceptionMessage;
+        do {
+            int input = inputInt(message, min, max, loop);
+
+            if (!idList.contains(new Integer(input))) {
+                exceptionMessage = "This id doesn't exist";
+                handleInvalidInput(loop, exceptionMessage);
+                continue;
+            }
+
+            return input;
         } while (true);
     }
 
     public static String inputString(String message, int min, int max, boolean loop) throws IllegalArgumentException {
+        Scanner sc = new Scanner(System.in);
+        String input;
+        String exceptionMessage = "input length must be from " + min + " to " + max;
         do {
-            try {
-                Scanner sc = new Scanner(System.in);
-                System.out.print(message);
-                String input = sc.nextLine();
-                String exceptionMessage = "input length must be from " + min + " to " + max;
-                if (input.trim().length() > max || input.trim().length() < min) { //check if user enter double space also
-                    throw new IllegalArgumentException(exceptionMessage);
-                }
+
+            System.out.print(message);
+            input = sc.nextLine();
+            if (input.trim().length() <= max && input.trim().length() >= min) {
                 return input;
-            } catch (Exception e) {
-                if (loop == false) {
-                    throw e;
-                }
-                continueInputField(e);
             }
+            handleInvalidInput(loop, exceptionMessage);
         } while (true);
     }
 
-    public static int inputInt(String message, int min, int max, boolean loop) throws IllegalArgumentException, InputMismatchException {
+    public static int inputInt(String message, int min, int max, boolean loop) throws IllegalArgumentException {
+        Scanner sc = new Scanner(System.in);
+        String exceptionMessage;
         do {
+            int input = 0;
+            sc = new Scanner(System.in); //reset input stream
+            System.out.print(message);
+
             try {
-                Scanner sc = new Scanner(System.in);
-                System.out.print(message);
-                int input = 0;
-                try {
-                    input = sc.nextInt();
-                } catch (InputMismatchException | NumberFormatException e) {
-                    throw new InputMismatchException("invalid input type");
-                }
-                String exceptionMessage = "input value must be from " + min + " to " + max;
-                if (input > max || input < min) {
-                    throw new IllegalArgumentException(exceptionMessage);
-                }
-                return input;
-            } catch (Exception e) {
-                if (loop == false) {
-                    throw e;
-                }
-                continueInputField(e);
+                input = sc.nextInt();
+            } catch (InputMismatchException | NumberFormatException e) {
+                exceptionMessage = "Invalid inpyt type";
+                handleInvalidInput(loop, exceptionMessage);
+                continue;
             }
+
+            if (input <= max && input >= min) {
+                return input;
+            }
+            exceptionMessage = "input value must be from " + min + " to " + max;
+            handleInvalidInput(loop, exceptionMessage);
         } while (true);
     }
 
-    public static double inputDouble(String message, double min, double max, boolean loop) throws IllegalArgumentException, InputMismatchException {
+    public static double inputDouble(String message, double min, double max, boolean loop) throws IllegalArgumentException {
+        Scanner sc = new Scanner(System.in);
+        String exceptionMessage;
         do {
+            double input = 0;
+            sc = new Scanner(System.in); //reset input stream
+            System.out.print(message);
             try {
-                Scanner sc = new Scanner(System.in);
-                System.out.print(message);
-                double input = 0;
-                try {
-                    input = sc.nextDouble();
-                } catch (InputMismatchException | NumberFormatException e) {
-                    throw new InputMismatchException("invalid input type");
-                }
-                String exceptionMessage = "input value must be from " + min + " to " + max;
-                if (input > max || input < min) {
-                    throw new IllegalArgumentException(exceptionMessage);
-                }
-                return input;
-            } catch (Exception e) {
-                if (loop == false) {
-                    throw e;
-                }
-                continueInputField(e);
+                input = sc.nextDouble();
+            } catch (InputMismatchException | NumberFormatException e) {
+                exceptionMessage = "invalid input type";
+                handleInvalidInput(loop, exceptionMessage);
+                continue;
             }
+
+            if (input <= max && input >= min) {
+                return input;
+            }
+
+            exceptionMessage = "input value must be from " + min + " to " + max;
+            handleInvalidInput(loop, exceptionMessage);
         } while (true);
     }
 
@@ -123,82 +125,67 @@ public class InputUtils {
             } else if (choice.toLowerCase().equals("n")) {
                 return false;
             }
+
+            System.out.println("Please enter 'y' or 'n' only");
         } while (true);
     }
 
-    public static LocalDate inputDate(String message, boolean allowBlank, boolean loop) throws IllegalArgumentException {
+    public static LocalDate inputDate(String message, boolean allowBlank, boolean loop) throws IllegalArgumentException { //allow blank -> can omit this input
+        Scanner sc = new Scanner(System.in);
+        String dateInString;
+        LocalDate date;
+        String exceptionMessage;
         do {
-            try {
-                Scanner sc = new Scanner(System.in);
-                System.out.println(message);
-                System.out.print("Please enter with the format yyyy-MM-dd (Example: 2020-05-06): ");
+            System.out.println(message);
+            System.out.print("Please enter with the format yyyy-MM-dd (Example: 2020-05-06): ");
+            dateInString = sc.nextLine();
 
-                String dateInString = sc.nextLine();
-                if (dateInString.equals("") && allowBlank == true) { //allowBlank is for second jab because second jab can be omiited when adding injection
+            if (dateInString.trim().length() == 0) {
+                if (allowBlank) {
                     return null;
-                } else if (dateInString.equals("")) {
-                    throw new IllegalArgumentException("Youre not allowed to omit this field");
                 }
 
-                try {
-                    LocalDate date = LocalDate.parse(dateInString);
-                    return date;
-                } catch (DateTimeParseException e) {
-                    throw new IllegalArgumentException("Invalid date format");
-                }
+                exceptionMessage = "You can't omit this field";
+                handleInvalidInput(loop, exceptionMessage);
+                continue;
+            }
 
-            } catch (IllegalArgumentException e) {
-                if (loop == false) {
-                    throw e;
-                }
-                continueInputField(e);
+            try {
+                date = LocalDate.parse(dateInString);
+                return date;
+            } catch (DateTimeParseException e) {
+                exceptionMessage = "invalid date format";
+                handleInvalidInput(loop, exceptionMessage);
             }
         } while (true);
     }
 
-    public static int inputStudentIdOfInjection(int min, int max, ArrayList<Integer> studentIdList, InjectionListManagement injectionManagement, boolean loop) throws IllegalArgumentException {
-        int studentId = 0;
+    public static LocalDate inputDateWithWeekLimit(String message, LocalDate limitDate, int min, int max, boolean allowBlank, boolean loop) throws IllegalArgumentException {
+        LocalDate date;
         do {
-            try {
-                studentId = InputUtils.inputId("Enter this injection's student's id: ", min, max, loop, studentIdList, false);
-
-                if (injectionManagement.searchInjectionByStudentId(studentId) != null) {
-                    throw new IllegalArgumentException("This injection's student's id already existed");
-                }
-                return studentId;
-            } catch (Exception e) {
-                if (loop == false) {
-                    throw e;
-                }
-                continueInputField(e);
+            date = InputUtils.inputDate(message, allowBlank, loop);
+            if (date == null && allowBlank == true) { 
+                return date;
             }
+
+            if (limitDate.isBefore(date.minusWeeks(max)) || limitDate.isAfter(date.minusWeeks(min))) {
+                String exceptionMessage = "The date of second jab must be between 4-12 weeks";
+                handleInvalidInput(loop, exceptionMessage);
+                continue;
+            }
+
+            return date;
         } while (true);
     }
 
-    public static JabProfile inputSecondJab(boolean isAddInjection, LocalDate firstJabDate) throws IllegalArgumentException {
-        LocalDate secondJabDate = null;
-        System.out.println("Enter information for second jab: ");
-        do {
-            try {
-                secondJabDate = InputUtils.inputDate("Enter new second jab's date: ", isAddInjection, true); //add injection == true -> allow blank
-                if (secondJabDate == null && isAddInjection == true) { //add injection -> second jab's information can be omitted
-                    break;
-                }
-
-                LocalDate beforeSecondDate4Weeks = secondJabDate.minusWeeks(4);
-                LocalDate beforeSecondDate12Weeks = secondJabDate.minusWeeks(12);
-
-                if (beforeSecondDate4Weeks.isBefore(firstJabDate) || beforeSecondDate12Weeks.isAfter(firstJabDate)) {
-                    throw new IllegalArgumentException("The date of second jab must be between 4-12 weeks");
-                }
-                break;
-            } catch (Exception e) {
-                continueInputField(e);
-            }
-        } while (true);
-
-        int minOfSecondJabPlace = isAddInjection ? 0 : 1; //for add injection, the place can be omiited
-        String secondJabPlace = InputUtils.inputString("Enter new second jab's place: ", minOfSecondJabPlace, 20, true);
-        return new JabProfile(secondJabDate, secondJabPlace);
+    public static void handleInvalidInput(boolean isLoop, String exceptionMessage) throws IllegalArgumentException {
+        if (isLoop == false) {
+            throw new IllegalArgumentException(exceptionMessage);
+        }
+        System.out.println(exceptionMessage);
+        boolean isContinue = inputYesNo("Continue to enter this field ?(Y/n)");
+        if (!isContinue) {
+            throw new IllegalArgumentException("Failed to input");
+        }
     }
 }

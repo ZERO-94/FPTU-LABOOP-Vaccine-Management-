@@ -11,7 +11,8 @@ import java.io.Serializable;
  *
  * @author kiman
  */
-public class Vaccine implements Serializable{
+public class Vaccine implements Serializable {
+
     private int id;
     private String name;
 
@@ -19,7 +20,7 @@ public class Vaccine implements Serializable{
         this.id = id;
         this.name = name;
     }
-    
+
     public int getId() {
         return id;
     }
@@ -31,7 +32,14 @@ public class Vaccine implements Serializable{
     public void setName(String name) {
         this.name = name;
     }
-    
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 53 * hash + this.id;
+        return hash;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null || !(obj instanceof Vaccine)) {
@@ -46,7 +54,7 @@ public class Vaccine implements Serializable{
 
         return true;
     }
-    
+
     public String toString() {
         return this.id + ", " + this.name;
     }
